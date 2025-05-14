@@ -1,0 +1,85 @@
+---
+import '../styles/global.css';
+import '../styles/carousel.css';
+import MinimalistNavbar from '../components/MinimalNavbar';
+import Footer from '../components/Footer';
+import { getFavicon } from '../services/faviconService';
+import { LocaleProvider } from '../context/LocaleContext';
+
+interface Props {
+	title: string;
+	metaDescription?: string;
+	keywords?: string;
+	canonicalURL?: string;
+}
+
+const { title, metaDescription = 'Tu fuente confiable de noticias y artículos sobre tecnología, viajes, salud, medio ambiente y más.', keywords, canonicalURL } = Astro.props;
+const { data } = await getFavicon();
+const faviconUrl = data?.Favicon?.url ? `http://localhost:1337${data.Favicon.url}` : '/favicon.svg';
+
+// Valor por defecto para SSR, se actualizará en el cliente
+const initialLocale = 'es-CO';
+---
+
+<!doctype html>
+<html lang={initialLocale.split('-')[0]}>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href={faviconUrl} />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		
+		{metaDescription && <meta name="description" content={metaDescription} />}
+		{keywords && <meta name="keywords" content={keywords} />}
+		{canonicalURL && <link rel="canonical" href={canonicalURL} />}
+		
+		<!-- Open Graph / Facebook -->
+		<meta property="og:type" content="article" />
+		<meta property="og:title" content={title} />
+		{metaDescription && <meta property="og:description" content={metaDescription} />}
+		
+		<!-- Twitter -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		{metaDescription && <meta name="twitter:description" content={metaDescription} />}
+		
+		<!-- Script para actualizar el atributo lang basado en localStorage -->
+		<script>
+			// Función para actualizar el atributo lang
+			function updateLangAttribute() {
+				const savedLocale = localStorage.getItem('locale') || 'es-CO';
+				console.log('Layout script - Idioma detectado en localStorage:', savedLocale);
+				
+				// Actualizar directamente el elemento HTML raíz
+				document.documentElement.lang = savedLocale.split('-')[0];
+				console.log('Layout script - Atributo lang actualizado a:', document.documentElement.lang);
+			}
+			
+			// Actualizar al cargar la página
+			updateLangAttribute();
+			
+			// Escuchar cambios de idioma
+			window.addEventListener('localeChange', updateLangAttribute);
+			
+			// También verificar periódicamente por cambios (por si acaso)
+			setInterval(updateLangAttribute, 1000);
+		</script>
+	</head>
+	<body class="bg-gray-100 min-h-screen flex flex-col">
+		<LocaleProvider>
+			<MinimalistNavbar client:load />
+			<slot />
+			<Footer client:load />
+		</LocaleProvider>
+	</body>
+</html>
+
+<style>
+	html,
+	body {
+		margin: 0;
+		width: 100%;
+		height: 100%;
+	}
+</style>

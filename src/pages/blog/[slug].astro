@@ -1,0 +1,100 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getBlogPost, getBlogPosts } from '../../services/blogService';
+import type { BlogPost } from '../../types/blog';
+
+export async function getStaticPaths() {
+  try {
+    // Obtener posts en español
+    const { data: postsES } = await getBlogPosts();
+    
+    // Forzar el cambio a inglés para obtener posts en inglés
+    // (Esto es un hack ya que no podemos usar localStorage en el servidor)
+    if (typeof process !== 'undefined') {
+      // Guardamos valor original para restaurarlo después
+      const originalEnv = process.env.FORCE_LOCALE;
+      // Forzar locale en 'en'
+      process.env.FORCE_LOCALE = 'en';
+      
+      // Obtener posts en inglés
+      const { data: postsEN } = await getBlogPosts();
+      
+      // Restaurar valor original
+      process.env.FORCE_LOCALE = originalEnv;
+      
+      // Combinar rutas para ambos idiomas
+      console.log(`Generando ${postsES.length} rutas en español y ${postsEN.length} rutas en inglés`);
+      
+      const routes: Array<{params: {slug: string}, props: {post: BlogPost, locale: string}}> = [];
+      
+      // Rutas en español
+      postsES.forEach((post: BlogPost) => {
+        routes.push({
+          params: { slug: post.slug },
+          props: { post, locale: 'es-CO' }
+        });
+      });
+      
+      // Rutas en inglés
+      postsEN.forEach((post: BlogPost) => {
+        routes.push({
+          params: { slug: post.slug },
+          props: { post, locale: 'en' }
+        });
+      });
+      
+      return routes;
+    } else {
+      // Si no podemos forzar el locale, al menos devolvemos las rutas en español
+      return postsES.map((post: BlogPost) => ({
+        params: { slug: post.slug },
+        props: { post, locale: 'es-CO' }
+      }));
+    }
+  } catch (error) {
+    console.error("Error generando rutas:", error);
+    return [];
+  }
+}
+
+const { post, locale = 'es-CO' } = Astro.props;
+const imageUrl = post.ImagenDestacada[0]?.url;
+const fullImageUrl = imageUrl ? `http://localhost:1337${imageUrl}` : '';
+---
+
+<Layout 
+  title={post.seo?.metaTitle || post.Titulo}
+  metaDescription={post.seo?.metaDescription}
+  keywords={post.seo?.keywords}
+  canonicalURL={post.seo?.canonicalURL}
+>
+  <article class="container mx-auto px-4 py-8 max-w-4xl">
+    {fullImageUrl && (
+      <img
+        src={fullImageUrl}
+        alt={post.Titulo}
+        class="w-full h-96 object-cover rounded-lg mb-8"
+      />
+    )}
+    <h1 class="text-4xl font-bold mb-4">{post.Titulo}</h1>
+    
+    <div class="flex items-center gap-4 mb-8">
+      <div class="flex-1">
+        <p class="text-gray-600">
+          {new Date(post.FechaPublicacion).toLocaleDateString(
+            locale === 'en' ? 'en-US' : 'es-CO',
+            { year: 'numeric', month: 'long', day: 'numeric' }
+          )}
+        </p>
+        {post.autor && (
+          <div class="mt-2">
+            <p class="font-semibold">{post.autor.Nombre}</p>
+            <p class="text-gray-600 text-sm">{post.autor.Biografia}</p>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <div class="prose prose-lg max-w-none" set:html={post.Contenido} />
+  </article>
+</Layout> 

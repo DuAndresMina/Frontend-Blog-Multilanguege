@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getBlogPosts } from '../services/blogService';
+import { getCategories } from '../services/categoryService';
+import BlogCard from '../components/BlogCard';
+import HeroSection from '../components/HeroSection';
+import BlogSection from '../components/BlogSection';
+import RandomRecommendations from '../components/RandomRecommendations';
+import NewsletterSection from '../components/NewsletterSection';
+
+const { data: posts } = await getBlogPosts();
+const { data: categories } = await getCategories();
+const url = new URL(Astro.request.url);
+const searchQuery = url.searchParams.get('q')?.toLowerCase() || '';
+const filteredPosts = searchQuery
+  ? posts.filter(post =>
+      post.Titulo.toLowerCase().includes(searchQuery) ||
+      post.Contenido.toLowerCase().includes(searchQuery) ||
+      post.categoria?.Nombre?.toLowerCase().includes(searchQuery)
+    )
+  : posts;
+const heroPosts = filteredPosts.slice(0, 3);
+const heroIds = heroPosts.map(p => p.id);
+---
+
+<Layout title="Blog - Tu fuente de noticias y artículos">
+  <HeroSection client:load posts={heroPosts} />
+  <BlogSection client:only="react" posts={filteredPosts} categories={categories} />
+  <RandomRecommendations client:load posts={filteredPosts} excludeIds={heroIds} />
+  <NewsletterSection client:load />
+  <!-- Aquí irá la nueva sección Blog con paginación y filtro -->
+  <!-- El Footer ya está incluido en el layout -->
+</Layout> 
