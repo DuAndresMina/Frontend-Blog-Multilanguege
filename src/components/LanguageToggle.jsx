@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 
-const API_BASE_URL = 'https://strapi-blog-multilanguage.onrender.com/api';
-
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL;
 /**
  * LanguageToggle Component
  * A button that toggles between languages (es-CO and en)
