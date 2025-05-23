@@ -3,8 +3,6 @@ import '../styles/global.css';
 import '../styles/carousel.css';
 import MinimalistNavbar from '../components/MinimalNavbar';
 import Footer from '../components/Footer';
-import { getFavicon } from '../services/faviconService';
-import { LocaleProvider } from '../context/LocaleContext';
 
 interface Props {
 	title: string;
@@ -14,11 +12,29 @@ interface Props {
 }
 
 const { title, metaDescription = 'Tu fuente confiable de noticias y artículos sobre tecnología, viajes, salud, medio ambiente y más.', keywords, canonicalURL } = Astro.props;
-const { data } = await getFavicon();
-const faviconUrl = data?.Favicon?.url ? `http://localhost:1337${data.Favicon.url}` : '/favicon.svg';
 
 // Valor por defecto para SSR, se actualizará en el cliente
 const initialLocale = 'es-CO';
+
+// Fetch favicon
+const faviconResponse = await fetch('https://strapi-blog-multilanguage.onrender.com/api/favicon?populate=*');
+const faviconData = await faviconResponse.json();
+const faviconUrl = faviconData?.data?.Favicon?.url ? `https://strapi-blog-multilanguage.onrender.com${faviconData.data.Favicon.url}` : '/favicon.svg';
+
+// Fetch redes sociales
+const redesResponse = await fetch('https://strapi-blog-multilanguage.onrender.com/api/redes-principal?populate=*');
+const redesData = await redesResponse.json();
+const redesSociales = redesData?.data?.RedesSocial || {};
+
+// Fetch meta título global
+const tituloResponse = await fetch(`https://strapi-blog-multilanguage.onrender.com/api/meta-titulo-global?locale=${initialLocale}&populate=*`);
+const tituloData = await tituloResponse.json();
+const tituloGlobal = tituloData?.data?.TituloPrincipal || '';
+
+// Fetch meta descripción global
+const descripcionResponse = await fetch(`https://strapi-blog-multilanguage.onrender.com/api/meta-descripcion-global?locale=${initialLocale}&populate=*`);
+const descripcionData = await descripcionResponse.json();
+const descripcionGlobal = descripcionData?.data?.DescriptionGlobal || '';
 ---
 
 <!doctype html>
@@ -28,50 +44,31 @@ const initialLocale = 'es-CO';
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="icon" type="image/svg+xml" href={faviconUrl} />
 		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title>
+		<title>{tituloGlobal || title}</title>
 		
-		{metaDescription && <meta name="description" content={metaDescription} />}
+		<meta name="description" content={descripcionGlobal || metaDescription} />
 		{keywords && <meta name="keywords" content={keywords} />}
 		{canonicalURL && <link rel="canonical" href={canonicalURL} />}
 		
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="article" />
-		<meta property="og:title" content={title} />
-		{metaDescription && <meta property="og:description" content={metaDescription} />}
+		<meta property="og:title" content={tituloGlobal || title} />
+		<meta property="og:description" content={descripcionGlobal || metaDescription} />
 		
 		<!-- Twitter -->
 		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:title" content={title} />
-		{metaDescription && <meta name="twitter:description" content={metaDescription} />}
+		<meta name="twitter:title" content={tituloGlobal || title} />
+		<meta name="twitter:description" content={descripcionGlobal || metaDescription} />
 		
-		<!-- Script para actualizar el atributo lang basado en localStorage -->
-		<script>
-			// Función para actualizar el atributo lang
-			function updateLangAttribute() {
-				const savedLocale = localStorage.getItem('locale') || 'es-CO';
-				console.log('Layout script - Idioma detectado en localStorage:', savedLocale);
-				
-				// Actualizar directamente el elemento HTML raíz
-				document.documentElement.lang = savedLocale.split('-')[0];
-				console.log('Layout script - Atributo lang actualizado a:', document.documentElement.lang);
-			}
-			
-			// Actualizar al cargar la página
-			updateLangAttribute();
-			
-			// Escuchar cambios de idioma
-			window.addEventListener('localeChange', updateLangAttribute);
-			
-			// También verificar periódicamente por cambios (por si acaso)
-			setInterval(updateLangAttribute, 1000);
+		<!-- Social Media Data -->
+		<script define:vars={{ redesSociales }}>
+			window.redesSociales = redesSociales;
 		</script>
 	</head>
 	<body class="bg-gray-100 min-h-screen flex flex-col">
-		<LocaleProvider>
-			<MinimalistNavbar client:load />
-			<slot />
-			<Footer client:load />
-		</LocaleProvider>
+		<MinimalistNavbar client:load />
+		<slot />
+		<Footer client:load />
 	</body>
 </html>
 
@@ -81,5 +78,7 @@ const initialLocale = 'es-CO';
 		margin: 0;
 		width: 100%;
 		height: 100%;
+		padding: 0;
+  overflow-x: hidden;
 	}
 </style>

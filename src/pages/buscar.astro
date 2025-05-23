@@ -1,57 +1,16 @@
 ---
-// buscador.astro
-export const prerender = false;
-// o bien, si tu versión de Astro lo soporta:
-export const ssr = true;
-
 import Layout from '../layouts/Layout.astro';
-import { searchBlogPosts } from '../services/searchService';
-import BlogCard from '../components/BlogCard';
-
-const response = await searchBlogPosts();
-const posts = response.data;
-
-// Ahora sí hay query en runtime:
+import MinimalNavbar from '../components/MinimalNavbar';
+import SearchPosts from '../components/SearchPosts.jsx';
 const searchQuery = Astro.url.searchParams.get('q') || '';
-const normalizedQuery = searchQuery.trim().toLowerCase();
-const searchWords = normalizedQuery
-  ? normalizedQuery.split(/\s+/).filter(w => w.length > 0)
-  : [];
-
-const filteredPosts = searchWords.length > 0
-  ? posts.filter(post => {
-      const title   = (post.Titulo  || '').toLowerCase();
-      const content = (post.Contenido || '').toLowerCase();
-      return searchWords.every(w =>
-        title.includes(w) || content.includes(w)
-      );
-    })
-  : [];
+const locale      = Astro.url.searchParams.get('lang') || 'es-CO';
 ---
-<Layout title={`Buscar: ${searchQuery}`}>
-  <div class="max-w-6xl mx-auto mt-12 mb-8">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">Resultados de búsqueda</h1>
 
-    {searchQuery
-      ? (
-        <p class="text-gray-600 mb-4">
-          {filteredPosts.length > 0
-            ? `Se encontraron ${filteredPosts.length} resultado(s) para “${searchQuery}”.`
-            : `No se encontraron resultados para “${searchQuery}”.`}
-        </p>
-      )
-      : (
-        <p class="text-gray-600 mb-4">
-          Por favor ingresa una palabra clave para buscar artículos.
-        </p>
-      )}
-  </div>
-
-  {filteredPosts.length > 0 && (
-    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-      {filteredPosts.map(post => (
-        <BlogCard client:load post={post} />
-      ))}
+<Layout title={`${locale==='es-CO'?'Buscar':'Search'}: ${searchQuery}`}>
+  <MinimalNavbar client:load />
+  <main class="pt-24 pb-16">
+    <div class="max-w-3xl mx-auto px-4">
+      <SearchPosts client:load initialQuery={searchQuery} initialLocale={locale} />
     </div>
-  )}
+  </main>
 </Layout>

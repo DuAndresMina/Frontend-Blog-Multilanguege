@@ -1,0 +1,91 @@
+---
+export const prerender = false;
+export const ssr       = true;
+
+import Layout from '../../layouts/Layout.astro';
+import MinimalNavbar from '../../components/MinimalNavbar';
+
+// 1) Get route param + query
+const { slug }   = Astro.params;
+const locale     = Astro.url.searchParams.get('lang') || 'es-CO';
+
+// 2) Fetch the matching post
+const ENDPOINT = `https://strapi-blog-multilanguage.onrender.com/api/blog-posts?filters[slug][$eq]=${slug}&locale=${locale}&populate=*`;
+
+const res = await fetch(ENDPOINT);
+if (!res.ok) {
+  return Astro.redirect('/404');
+}
+
+const json     = await res.json();
+const postData = json.data?.[0];
+if (!postData) {
+  return Astro.redirect('/404');
+}
+
+// 3) Helpers
+const formatDate = (d) =>
+  new Date(d).toLocaleDateString(
+    locale === 'en' ? 'en-US' : 'es-CO',
+    { year: 'numeric', month: 'long', day: 'numeric' }
+  );
+
+const imgAttr = postData.ImagenDestacada?.[0]?.formats?.large
+  || postData.ImagenDestacada?.[0]?.formats?.medium
+  || postData.ImagenDestacada?.[0]?.url;
+
+const imageUrl = imgAttr
+  ? `https://strapi-blog-multilanguage.onrender.com${imgAttr.url}`
+  : null;
+
+---
+<Layout
+  title={postData.seo?.metaTitle || postData.Titulo}
+  metaDescription={postData.seo?.metaDescription}
+  keywords={postData.seo?.keywords}
+  canonicalURL={postData.seo?.canonicalURL}
+>
+  <MinimalNavbar client:load />
+
+  <article class="container mx-auto px-4 py-8 max-w-4xl space-y-8">
+    {imageUrl && (
+      <div class="w-full h-[400px] md:h-[500px] rounded-xl overflow-hidden">
+        <img
+          src={imageUrl}
+          alt={postData.Titulo}
+          class="w-full h-full object-cover"
+        />
+      
+      </div>
+    )}
+
+    <header class="space-y-4">
+      <div class="flex items-center gap-2 text-gray-500 text-sm">
+        {postData.categoria?.Nombre && (
+          <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+            {postData.categoria.Nombre}
+          </span>
+        )}
+        <span>{formatDate(postData.FechaPublicacion)}</span>
+      </div>
+
+      <h1 class="text-4xl font-bold text-gray-900">{postData.Titulo}</h1>
+
+      {postData.autor && (
+        <div class="flex items-center gap-4">
+          <div>
+            <p class="font-semibold">{postData.autor.Nombre}</p>
+            <p class="text-gray-600 text-sm">
+              {postData.autor.Biografia}
+            </p>
+          </div>
+        </div>
+      )}
+    </header>
+
+    <div
+      class="prose prose-lg max-w-none"
+      set:html={postData.Contenido}
+    />
+  </article>
+</Layout>
