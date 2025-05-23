@@ -1,28 +1,42 @@
 import { useEffect, useState } from 'react';
 import LanguageToggle from './LanguageToggle';
 
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL;
+const API_BASE_URL_img = import.meta.env.PUBLIC_API_IMG_URL;
+
 export default function MinimalNavbar() {
   const [logoUrl, setLogoUrl] = useState('');
   const [search, setSearch] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
   const [locale, setLocale] = useState('es-CO');
+  const [logoLoaded, setLogoLoaded] = useState(false);
 
+  // Preload logo
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const apiUrl = 'https://strapi-blog-multilanguage.onrender.com/api/logo?populate[Logo][fields]=url,formats';
-        const response = await fetch(apiUrl);
+        const apiUrl = `${API_BASE_URL}/logo?populate[Logo][fields]=url,formats`;
+        const response = await fetch(apiUrl, { priority: 'high' });
         const data = await response.json();
         
         if (data?.data?.Logo?.url) {
           const logoUrl = data.data.Logo.formats?.small?.url || data.data.Logo.url;
-          const fullLogoUrl = `https://strapi-blog-multilanguage.onrender.com${logoUrl}`;
-          setLogoUrl(fullLogoUrl);
+          const fullLogoUrl = `${API_BASE_URL_img}${logoUrl}`;
+          
+          // Preload logo image
+          const img = new Image();
+          img.src = fullLogoUrl;
+          img.onload = () => {
+            setLogoUrl(fullLogoUrl);
+            setLogoLoaded(true);
+          };
         } else {
           console.warn('No logo URL found in the response:', data);
+          setLogoLoaded(true);
         }
       } catch (error) {
         console.error('Error fetching logo:', error);
+        setLogoLoaded(true);
       }
     };
     fetchLogo();
@@ -63,6 +77,16 @@ export default function MinimalNavbar() {
     window.dispatchEvent(new CustomEvent('localeChange', { detail: { locale: newLocale } }));
   };
 
+  if (!logoLoaded) {
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <div className="h-10 w-32 bg-gray-200 animate-pulse rounded"></div>
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       isScrolled ? 'bg-white/80 backdrop-blur-md shadow-sm' : 'bg-transparent'
@@ -74,6 +98,8 @@ export default function MinimalNavbar() {
               src={logoUrl} 
               alt="Logo" 
               className="h-10 w-auto transition-transform duration-300 group-hover:scale-105 filter drop-shadow-lg" 
+              loading="eager"
+              fetchpriority="high"
             />
           </a>
         )}
