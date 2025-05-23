@@ -16,23 +16,27 @@ const { title, metaDescription = 'Tu fuente confiable de noticias y artículos s
 // Valor por defecto para SSR, se actualizará en el cliente
 const initialLocale = 'es-CO';
 
+// API URLs from environment variables
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL;
+const API_BASE_URL_img = import.meta.env.PUBLIC_API_IMG_URL;
+
 // Fetch favicon
-const faviconResponse = await fetch('https://strapi-blog-multilanguage.onrender.com/api/favicon?populate=*');
+const faviconResponse = await fetch(`${API_BASE_URL}/favicon?populate=*`);
 const faviconData = await faviconResponse.json();
-const faviconUrl = faviconData?.data?.Favicon?.url ? `https://strapi-blog-multilanguage.onrender.com${faviconData.data.Favicon.url}` : '/favicon.svg';
+const faviconUrl = faviconData?.data?.Favicon?.url ? `${API_BASE_URL_img}${faviconData.data.Favicon.url}` : '/favicon.svg';
 
 // Fetch redes sociales
-const redesResponse = await fetch('https://strapi-blog-multilanguage.onrender.com/api/redes-principal?populate=*');
+const redesResponse = await fetch(`${API_BASE_URL}/redes-principal?populate=*`);
 const redesData = await redesResponse.json();
 const redesSociales = redesData?.data?.RedesSocial || {};
 
 // Fetch meta título global
-const tituloResponse = await fetch(`https://strapi-blog-multilanguage.onrender.com/api/meta-titulo-global?locale=${initialLocale}&populate=*`);
+const tituloResponse = await fetch(`${API_BASE_URL}/meta-titulo-global?locale=${initialLocale}&populate=*`);
 const tituloData = await tituloResponse.json();
 const tituloGlobal = tituloData?.data?.TituloPrincipal || '';
 
 // Fetch meta descripción global
-const descripcionResponse = await fetch(`https://strapi-blog-multilanguage.onrender.com/api/meta-descripcion-global?locale=${initialLocale}&populate=*`);
+const descripcionResponse = await fetch(`${API_BASE_URL}/meta-descripcion-global?locale=${initialLocale}&populate=*`);
 const descripcionData = await descripcionResponse.json();
 const descripcionGlobal = descripcionData?.data?.DescriptionGlobal || '';
 ---
@@ -65,20 +69,39 @@ const descripcionGlobal = descripcionData?.data?.DescriptionGlobal || '';
 			window.redesSociales = redesSociales;
 		</script>
 	</head>
-	<body class="bg-gray-100 min-h-screen flex flex-col">
-		<MinimalistNavbar client:load />
-		<slot />
-		<Footer client:load />
+	<body>
+		<div class="flex flex-col min-h-screen">
+			<MinimalistNavbar client:load />
+			<main class="flex-grow">
+				<slot />
+			</main>
+			<Footer client:load />
+		</div>
 	</body>
 </html>
 
-<style>
+<style is:global>
 	html,
 	body {
 		margin: 0;
 		width: 100%;
 		height: 100%;
 		padding: 0;
-  overflow-x: hidden;
+		overflow-x: hidden;
+		background-color: #f3f4f6;
+	}
+
+	/* Asegurar que el footer siempre esté en la parte inferior */
+	.flex-col {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.min-h-screen {
+		min-height: 100vh;
+	}
+
+	.flex-grow {
+		flex: 1 0 auto;
 	}
 </style>
