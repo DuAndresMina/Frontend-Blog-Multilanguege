@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { getLocaleFromUrl } from '../utils/getLocale';
 
-const API_BASE_URL = 'https://strapi-blog-multilanguage.onrender.com/api';
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL;
 
 export default function Footer() {
   const [socialMedia, setSocialMedia] = useState(null);
