@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
-const API_BASE_URL = 'https://strapi-blog-multilanguage.onrender.com/api';
-const API_BASE_URL_img = 'https://strapi-blog-multilanguage.onrender.com';
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL;
+const API_BASE_URL_img = import.meta.env.PUBLIC_API_IMG_URL;
 
 /**
  * SearchPosts Component
