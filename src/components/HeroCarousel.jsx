@@ -55,7 +55,7 @@ export default function HeroCarousel() {
       if (imgUrl) {
         return new Promise((resolve, reject) => {
           const img = new Image();
-          img.src = `${API_BASE_URL_img}${imgUrl}`;
+          img.src = imgUrl;
           img.onload = resolve;
           img.onerror = reject;
         });
@@ -180,7 +180,7 @@ export default function HeroCarousel() {
               <div className="relative w-full h-full">
                 {imgUrl && (
                   <img 
-                    src={`${API_BASE_URL_img}${imgUrl}`} 
+                    src={imgUrl} 
                     alt={attr.Titulo} 
                     className="w-full h-full object-cover object-center"
                     loading="eager"
