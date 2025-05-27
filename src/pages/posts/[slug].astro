@@ -11,7 +11,6 @@ const locale     = Astro.url.searchParams.get('lang') || 'es-CO';
 
 // 2) Fetch the matching post
 const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL;
-const API_BASE_URL_img = import.meta.env.PUBLIC_API_IMG_URL;
 
 const ENDPOINT = `${API_BASE_URL}/blog-posts?filters[slug][$eq]=${slug}&locale=${locale}&populate=*`;
 
@@ -37,9 +36,7 @@ const imgAttr = postData.ImagenDestacada?.[0]?.formats?.large
   || postData.ImagenDestacada?.[0]?.formats?.medium
   || postData.ImagenDestacada?.[0]?.url;
 
-const imageUrl = imgAttr
-  ? `${API_BASE_URL_img}${imgAttr.url}`
-  : null;
+const imageUrl = imgAttr?.url || null;
 
 ---
 <Layout
