@@ -21,13 +21,12 @@ export default function MinimalNavbar() {
         
         if (data?.data?.Logo?.url) {
           const logoUrl = data.data.Logo.formats?.small?.url || data.data.Logo.url;
-          const fullLogoUrl = `${API_BASE_URL_img}${logoUrl}`;
           
           // Preload logo image
           const img = new Image();
-          img.src = fullLogoUrl;
+          img.src = logoUrl;
           img.onload = () => {
-            setLogoUrl(fullLogoUrl);
+            setLogoUrl(logoUrl);
             setLogoLoaded(true);
           };
         } else {
