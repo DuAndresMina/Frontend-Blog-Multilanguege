@@ -23,7 +23,7 @@ const API_BASE_URL_img = import.meta.env.PUBLIC_API_IMG_URL;
 // Fetch favicon
 const faviconResponse = await fetch(`${API_BASE_URL}/favicon?populate=*`);
 const faviconData = await faviconResponse.json();
-const faviconUrl = faviconData?.data?.Favicon?.url ? `${API_BASE_URL_img}${faviconData.data.Favicon.url}` : '/favicon.svg';
+const faviconUrl = faviconData?.data?.Favicon?.url || '/favicon.svg';
 
 // Fetch redes sociales
 const redesResponse = await fetch(`${API_BASE_URL}/redes-principal?populate=*`);
