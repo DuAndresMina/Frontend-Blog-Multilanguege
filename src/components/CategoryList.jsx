@@ -135,7 +135,7 @@ export default function CategoryPostBrowser() {
           {imgUrl && (
             <div className="relative h-40 sm:h-48 overflow-hidden">
               <img
-                src={`${API_BASE_URL_img}${imgUrl}`}
+                src={imgUrl}
                 alt={attr.ImagenDestacada?.[0]?.alternativeText || attr.Titulo}
                 className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
                 loading="lazy"
