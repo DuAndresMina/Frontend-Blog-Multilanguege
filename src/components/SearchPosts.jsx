@@ -69,9 +69,6 @@ export default function SearchPosts({ initialQuery = '', initialLocale = 'es-CO'
                         post.ImagenDestacada?.[0]?.formats?.medium?.url ||
                         post.ImagenDestacada?.[0]?.url;
           
-          console.log('SearchPosts - imgUrl:', imgUrl);
-          console.log('SearchPosts - post.ImagenDestacada:', post.ImagenDestacada);
-          
           return (
             <article 
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
@@ -79,14 +76,15 @@ export default function SearchPosts({ initialQuery = '', initialLocale = 'es-CO'
               <a href={`/posts/${post.slug}?lang=${locale}`} className="block">
                 <div className="flex flex-col md:flex-row">
                   {imgUrl && (
-                    <div className="relative w-full md:w-1/3 h-64 md:h-auto overflow-hidden">
-                      <img
-                  src={`${API_BASE_URL_img}${imgUrl}`}
-                        alt={post.ImagenDestacada?.[0]?.alternativeText || post.Titulo}
-                        className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                      />
-                    </div>
+                    <div className="relative w-50 h-50">
+                    <img
+                      src={imgUrl}
+                      alt={post.ImagenDestacada?.[0]?.alternativeText || post.Titulo}
+                      className="object-cover transform hover:scale-105 transition-transform duration-300 rounded-t-xl rounded-r-xl md:rounded-l-xl md:rounded-tr-none"
+                      loading="lazy"
+                    />
+                  </div>
+                    
                   )}
                   <div className="p-6 flex-1">
                     <div className="flex flex-col h-full">
